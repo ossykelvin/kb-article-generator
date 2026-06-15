@@ -35,34 +35,56 @@ def generate_text(self, system_prompt: str, user_prompt: str) -> str:
             contents=[
                 {
                     "role": "user",
-                    "parts": [
-                        {"text": f"{system_prompt}\n\n{user_prompt}"}
-                    ],
+                    "parts": [{"text": user_prompt}],
                 }
             ],
             config=types.GenerateContentConfig(
+                system_instruction=system_prompt,   # ✅ FIX HERE
                 temperature=self.settings.gemini_temperature,
                 max_output_tokens=self.settings.gemini_max_tokens,
             ),
         )
+
         return (response.text or "").strip()
 
     except Exception as e:
         print("\n🔥 GEMINI ERROR 🔥")
         print("Error:", str(e))
 
-        # ✅ THIS LINE IS CRITICAL
-        if hasattr(e, "response") and e.response is not None:
-            try:
-                print("Response JSON:", e.response.json())
-            except Exception:
-                pass
-
         if hasattr(e, "response_json"):
-            print("Response JSON (alt):", e.response_json)
+            print("API Response:", e.response_json)
 
         raise
+
 
     # ----------------------------------------
     # JSON GENERATION
     # ----------------------------------------
+def generate_json(self, system_prompt: str, user_prompt: str) -> dict:
+    try:
+        response = self.client.models.generate_content(
+            model=self.model,
+            contents=[
+                {
+                    "role": "user",
+                    "parts": [{"text": user_prompt}],
+                }
+            ],
+            config=types.GenerateContentConfig(
+                system_instruction=system_prompt,  # ✅ FIX
+                temperature=self.settings.gemini_temperature,
+                max_output_tokens=self.settings.gemini_max_tokens,
+                response_mime_type="application/json",
+            ),
+        )
+
+        return extract_json_object(response.text or "")
+
+    except Exception as e:
+        print("\n🔥 GEMINI JSON ERROR 🔥")
+        print("Error:", str(e))
+
+        if hasattr(e, "response_json"):
+            print("API Response:", e.response_json)
+
+        raise
