@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+import json
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-import json
 from datetime import datetime
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -21,22 +21,19 @@ settings = load_settings()
 st.set_page_config(page_title=settings.app_title, page_icon=settings.page_icon, layout='wide')
 
 
+def button_html(label: str, js: str, bg: str = '#2563EB'):
+    return f"<button onclick='{js}' style=\"padding:9px 14px;border:none;border-radius:9px;background:{bg};color:#fff;cursor:pointer;font-weight:600;\">{label}</button>"
+
+
 def copy_button(content: str, key: str, label: str = 'Copy'):
     safe = json.dumps(content)
-    components.html(
-        f"<button onclick='navigator.clipboard.writeText({safe})' style=\"padding:8px 14px; border:none; border-radius:8px; background:#2563EB; color:#fff; cursor:pointer;\">{label}</button>",
-        height=42,
-        key=key,
-    )
+    components.html(button_html(label, f"navigator.clipboard.writeText({safe})"), height=46, key=key)
 
 
 def print_button(html_content: str, key: str, label: str = 'Print'):
     safe = json.dumps(html_content)
-    js = (
-        f"<button onclick='(function(){{const html={safe}; const w=window.open(\"\", \"_blank\"); w.document.open(); w.document.write(html); w.document.close(); w.focus(); setTimeout(function(){{w.print();}}, 400);}})()' "
-        f"style=\"padding:8px 14px; border:none; border-radius:8px; background:#111827; color:#fff; cursor:pointer;\">{label}</button>"
-    )
-    components.html(js, height=42, key=key)
+    js = f"(function(){{const html={safe};const w=window.open('', '_blank');w.document.open();w.document.write(html);w.document.close();w.focus();setTimeout(function(){{w.print();}},400);}})()"
+    components.html(button_html(label, js, '#0D1B3D'), height=46, key=key)
 
 
 def render_preview(html_content: str):
@@ -44,21 +41,26 @@ def render_preview(html_content: str):
 
 
 st.title(settings.app_title)
-st.caption('Gemini edition: paste an article, generate a polished KB article, place images strategically, and produce an HTML email using your template.')
+st.caption('Paste a raw article, run the multi-agent flow, place images against relevant steps, and export a staff-ready HTML email.')
 
 with st.sidebar:
+    st.subheader('Agent Flow')
+    st.markdown('1. Refine article\n2. Structure as KB steps\n3. Plan image placements\n4. Render HTML email')
+    st.divider()
     st.subheader('Output & Email Options')
-    st.caption(f"Model: {settings.gemini_model}")
+    provider_label = settings.llm_provider.upper()
+    st.caption(f'Provider: {provider_label}')
     default_idx = settings.output_modes.index(settings.default_output_mode) if settings.default_output_mode in settings.output_modes else 0
     output_mode = st.selectbox('Output mode', settings.output_modes, index=default_idx)
     subtitle = st.text_input('Email subtitle', value=settings.default_subtitle)
+    greeting = st.text_input('Greeting', value=settings.default_greeting)
     intro_text = st.text_area('Intro text', value=settings.default_intro_text, height=90)
     footer_text = st.text_area('Footer text', value=settings.default_footer_text, height=90)
 
 with st.form('generator_form', clear_on_submit=False):
     article_title_override = st.text_input('Optional title override')
-    source_article = st.text_area('Paste the source article', height=320, placeholder='Paste the raw article here...')
-    uploaded_files = st.file_uploader('Upload step images (optional)', type=['png', 'jpg', 'jpeg', 'gif', 'webp'], accept_multiple_files=True)
+    source_article = st.text_area('Paste the source article', height=330, placeholder='Paste the raw article here...')
+    uploaded_files = st.file_uploader('Upload screenshots or images for steps (optional)', type=['png', 'jpg', 'jpeg', 'gif', 'webp'], accept_multiple_files=True)
     submit = st.form_submit_button('Generate KB Article')
 
 if 'generated' not in st.session_state:
@@ -69,7 +71,7 @@ if submit:
     if not cleaned_article:
         st.error('Please paste an article before generating output.')
     else:
-        with st.spinner('Running the Gemini multi-agent flow...'):
+        with st.spinner('Running the multi-agent KB article flow...'):
             uploaded_images = []
             for file in uploaded_files or []:
                 file_bytes = file.read()
@@ -85,11 +87,11 @@ if submit:
                 structured['title'] = article_title_override.strip()
             placement_plan = plan_image_placements(structured, uploaded_images, settings)
             enriched_article = attach_images_to_article(structured, placement_plan, uploaded_images, settings)
-            html_output = render_html(enriched_article, subtitle=subtitle, intro_text=intro_text, footer_text=footer_text, settings=settings)
+            html_output = render_html(enriched_article, subtitle=subtitle, intro_text=intro_text, footer_text=footer_text, settings=settings, greeting=greeting)
             text_output = render_text(enriched_article, include_images=False)
             image_text_output = render_text(enriched_article, include_images=True)
             st.session_state.generated = {
-                'timestamp': datetime.utcnow().isoformat(),
+                'timestamp': datetime.utcnow().isoformat(timespec='seconds'),
                 'refined': refined,
                 'structured': structured,
                 'placement_plan': placement_plan,
@@ -110,42 +112,33 @@ if result:
 
     if output_mode == 'Text':
         st.code(result['text_output'], language='markdown')
-        if settings.enable_copy:
-            copy_button(result['text_output'], key='copy_text', label='Copy text')
-        if settings.enable_download:
-            st.download_button('Download text', result['text_output'], file_name='kb_article.txt', mime='text/plain')
-    elif output_mode == 'Text + Images':
+        if settings.enable_copy: copy_button(result['text_output'], key='copy_text', label='Copy text')
+        if settings.enable_download: st.download_button('Download text', result['text_output'], file_name='kb_article.txt', mime='text/plain')
+    elif output_mode == 'Image Plan':
         st.code(result['image_text_output'], language='markdown')
-        if settings.enable_copy:
-            copy_button(result['image_text_output'], key='copy_text_images', label='Copy text + image markers')
-        if settings.enable_download:
-            st.download_button('Download text + image markers', result['image_text_output'], file_name='kb_article_with_images.txt', mime='text/plain')
+        st.json(result['placement_plan'])
+        if settings.enable_copy: copy_button(result['image_text_output'], key='copy_img_plan', label='Copy image plan')
+        if settings.enable_download: st.download_button('Download image plan', result['image_text_output'], file_name='kb_article_image_plan.txt', mime='text/plain')
     elif output_mode == 'HTML Code':
         st.code(result['html_output'], language='html')
-        if settings.enable_copy:
-            copy_button(result['html_output'], key='copy_html', label='Copy HTML')
-        if settings.enable_download:
-            st.download_button('Download HTML', result['html_output'], file_name='kb_article.html', mime='text/html')
-        if settings.enable_print:
-            print_button(result['html_output'], key='print_html_code', label='Print HTML')
+        if settings.enable_copy: copy_button(result['html_output'], key='copy_html', label='Copy HTML')
+        if settings.enable_download: st.download_button('Download HTML', result['html_output'], file_name='kb_article.html', mime='text/html')
+        if settings.enable_print: print_button(result['html_output'], key='print_html_code', label='Print HTML')
     elif output_mode == 'HTML Preview':
         render_preview(result['html_output'])
-        action_cols = st.columns(3)
-        with action_cols[0]:
-            if settings.enable_download:
-                st.download_button('Download HTML', result['html_output'], file_name='kb_article.html', mime='text/html')
-        with action_cols[1]:
-            if settings.enable_copy:
-                copy_button(result['html_output'], key='copy_html_preview', label='Copy HTML')
-        with action_cols[2]:
-            if settings.enable_print:
-                print_button(result['html_output'], key='print_html_preview', label='Print HTML')
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            if settings.enable_download: st.download_button('Download HTML', result['html_output'], file_name='kb_article.html', mime='text/html')
+        with c2:
+            if settings.enable_copy: copy_button(result['html_output'], key='copy_html_preview', label='Copy HTML')
+        with c3:
+            if settings.enable_print: print_button(result['html_output'], key='print_html_preview', label='Print HTML')
 
     with st.expander('Show refined article'):
         st.write(result['refined'])
     with st.expander('Show structured JSON'):
         st.code(to_json_string(result['structured']), language='json')
-    with st.expander('Show image placement plan'):
+    with st.expander('Show image placement JSON'):
         st.code(to_json_string(result['placement_plan']), language='json')
 else:
-    st.info('Generate an article to preview text, image placement markers, or the HTML output.')
+    st.info('Generate an article to preview text, image placement, or HTML output.')

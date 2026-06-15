@@ -47,7 +47,7 @@ def _render_step_card(step: dict, theme: dict) -> str:
     )
 
 
-def render_html(article: dict, subtitle: str, intro_text: str, footer_text: str, settings: Settings) -> str:
+def render_html(article: dict, subtitle: str, intro_text: str, footer_text: str, settings: Settings, greeting: str = 'Dear Team,') -> str:
     template_html = Path(settings.template_path).read_text(encoding='utf-8')
     theme = _extract_theme(template_html, settings)
     steps_html = ''.join(_render_step_card(step, theme) for step in article.get('steps', []))
@@ -76,7 +76,7 @@ def render_html(article: dict, subtitle: str, intro_text: str, footer_text: str,
 <p style="margin:8px 0 0; color:#EAF1FF; font-size:14px;">{html_escape(subtitle)}</p>
 </td></tr>
 <tr><td style="padding:28px 30px 12px;">
-<p style="margin:0 0 18px; font-size:15px; line-height:1.6;">Dear Team,</p>
+<p style="margin:0 0 18px; font-size:15px; line-height:1.6;">{html_escape(greeting)}</p>
 <p style="margin:0 0 20px; font-size:15px; line-height:1.6;">{html_escape(intro_text)}</p>
 <h2 style="margin:0 0 14px; font-size:20px; color:{theme['text']}; border-bottom:3px solid {theme['accent']}; padding-bottom:8px;">Overview</h2>
 <p style="margin:0 0 18px; font-size:15px; line-height:1.6; color:{theme['muted']};">{html_escape(article.get('overview', ''))}</p>

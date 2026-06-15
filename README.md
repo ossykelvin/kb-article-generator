@@ -1,43 +1,87 @@
-# KB Article Generator (Gemini Edition, Deployment-Safe)
+# Knowledge Base Email Article Generator
 
-A browser-based multi-agent application that turns a raw article into a polished internal knowledge base article, places images strategically, and formats the result as an HTML email using the provided template.
+This app converts a raw article into a staff-ready knowledge base article and renders it as an HTML email using the supplied blue template. It is designed for browser deployment, so you do not need to install software on your work device.
 
-## What this app does
-1. Refines the source article for grammar, clarity, conciseness, and customer-service tone.
-2. Converts the article into a structured KB format: Overview, steps, notes, and summary.
-3. Maps uploaded images to the most relevant steps, or inserts placeholders when no images are supplied.
-4. Renders a styled, email-safe HTML result using the template in `templates/email_template.html`.
-5. Lets you switch between Text, Text + Images, HTML Preview, and HTML Code.
-6. Supports Download, Copy, and Print.
+## Agent Flow
 
-## Deployment-safe fixes included
-- `__init__.py` files already added in `agents`, `utils`, and `skills`
-- `app.py` includes a `sys.path` root path fix for Streamlit Cloud / Replit imports
-- Repo is structured so `app.py` sits at repository root
+1. **Refinement Agent** - improves grammar, removes ambiguity, makes the tone suitable for customer service/support articles.
+2. **Structure Agent** - converts the refined article into Overview, numbered steps, Notes, and Summary. Step headings are rendered as Header 3 Bold.
+3. **Image Placement Agent** - places uploaded screenshots or placeholders at strategic points based on the article steps.
+4. **HTML Email Agent** - applies the email template and blue theme, then produces previewable and downloadable HTML.
 
-## Configure environment variables
-Open `.env.local` and set:
+## Output Options
+
+- **Text** - clean KB article text.
+- **Image Plan** - article text with image markers and placement JSON.
+- **HTML Preview** - rendered email preview.
+- **HTML Code** - raw HTML for copying into an email tool.
+
+Copy, download, and print controls can be enabled or disabled in `.env.local`.
+
+## Recommended No-Installation Deployment
+
+Use **Streamlit Community Cloud** or another hosted Python app platform.
+
+### Streamlit Cloud Steps
+
+1. Create a GitHub repository.
+2. Upload all files from this folder to the repository.
+3. In Streamlit Cloud, choose **New app** and select `app.py`.
+4. Add your environment variables from `.env.example` into Streamlit **Secrets** or keep `.env.local` only for private local testing.
+5. Deploy and open the generated browser URL.
+
+## AI Provider Setup
+
+Set `LLM_PROVIDER` to one of:
+
+- `gemini`
+- `openai`
+- `openrouter`
+- `offline`
+
+`offline` works without API keys, but it uses simple rule-based formatting and is less intelligent.
+
+## Important Environment Variables
+
+Copy `.env.example` to `.env.local` for local/private use, then set:
 
 ```env
 LLM_PROVIDER=gemini
-GEMINI_API_KEY=your_actual_gemini_api_key
-GEMINI_MODEL=gemini-2.5-pro
-GEMINI_TEMPERATURE=0.2
-GEMINI_MAX_TOKENS=2400
+GEMINI_API_KEY=your_key_here
+GEMINI_MODEL=gemini-2.5-flash
 ```
 
-## Deploy on Streamlit Community Cloud
-1. Extract this ZIP.
-2. Upload the **contents** of the project so `app.py` is at the repository root.
-3. In Streamlit Community Cloud, select `app.py` as the entry point.
-4. Add the environment values from `.env.local` to your Streamlit secrets or environment settings.
-5. Deploy.
+For OpenRouter:
 
-## Deploy on Replit
-1. Extract this ZIP or import the repo from GitHub.
-2. Add values from `.env.local` in Replit Secrets.
-3. Use this run command:
+```env
+LLM_PROVIDER=openrouter
+OPENROUTER_API_KEY=your_key_here
+OPENROUTER_MODEL=openai/gpt-4.1-mini
+```
+
+For OpenAI:
+
+```env
+LLM_PROVIDER=openai
+OPENAI_API_KEY=your_key_here
+OPENAI_MODEL=gpt-4.1-mini
+```
+
+## Local Run Command
+
+Only use this if you are on a device where installs are allowed:
 
 ```bash
-streamlit run app.py --server.address 0.0.0.0 --server.port 8501
+pip install -r requirements.txt
+streamlit run app.py
 ```
+
+## Template
+
+The app uses `templates/email_template.html`, based on your uploaded blue email layout. Theme colours and content width are controlled from `.env.local`.
+
+## Security Notes
+
+- Do not commit real API keys to GitHub.
+- Use Streamlit Secrets or platform environment variables for production.
+- Uploaded images are embedded into the generated HTML as base64 data URIs. For very large emails, use smaller screenshots.

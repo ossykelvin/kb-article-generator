@@ -17,10 +17,18 @@ class Settings:
     llm_provider: str
     gemini_api_key: str
     gemini_model: str
-    gemini_temperature: float
-    gemini_max_tokens: int
+    openai_api_key: str
+    openai_model: str
+    openrouter_api_key: str
+    openrouter_model: str
+    openrouter_base_url: str
+    openrouter_site_url: str
+    openrouter_app_name: str
+    ai_temperature: float
+    ai_max_tokens: int
     app_title: str
     page_icon: str
+    app_port: int
     default_output_mode: str
     output_modes: list[str]
     enable_download: bool
@@ -32,6 +40,7 @@ class Settings:
     use_placeholders_when_no_images: bool
     image_placeholder_text: str
     default_subtitle: str
+    default_greeting: str
     default_intro_text: str
     default_footer_text: str
     template_outer_bg: str
@@ -48,15 +57,23 @@ class Settings:
 
 def load_settings() -> Settings:
     return Settings(
-        llm_provider=os.getenv('LLM_PROVIDER', 'gemini').strip(),
+        llm_provider=os.getenv('LLM_PROVIDER', 'offline').strip().lower(),
         gemini_api_key=(os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_API_KEY') or '').strip(),
-        gemini_model=os.getenv('GEMINI_MODEL', 'gemini-2.5-pro').strip(),
-        gemini_temperature=float(os.getenv('GEMINI_TEMPERATURE', '0.2').strip()),
-        gemini_max_tokens=int(os.getenv('GEMINI_MAX_TOKENS', '2400').strip()),
-        app_title=os.getenv('APP_TITLE', 'Knowledge Base Article Generator').strip(),
-        page_icon=os.getenv('PAGE_ICON', '📰').strip(),
+        gemini_model=os.getenv('GEMINI_MODEL', 'gemini-2.5-flash').strip(),
+        openai_api_key=os.getenv('OPENAI_API_KEY', '').strip(),
+        openai_model=os.getenv('OPENAI_MODEL', 'gpt-4.1-mini').strip(),
+        openrouter_api_key=os.getenv('OPENROUTER_API_KEY', '').strip(),
+        openrouter_model=os.getenv('OPENROUTER_MODEL', 'openai/gpt-4.1-mini').strip(),
+        openrouter_base_url=os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1').strip(),
+        openrouter_site_url=os.getenv('OPENROUTER_SITE_URL', '').strip(),
+        openrouter_app_name=os.getenv('OPENROUTER_APP_NAME', 'Knowledge Base Email Article Generator').strip(),
+        ai_temperature=float(os.getenv('AI_TEMPERATURE', '0.2').strip()),
+        ai_max_tokens=int(os.getenv('AI_MAX_TOKENS', '3200').strip()),
+        app_title=os.getenv('APP_TITLE', 'Knowledge Base Email Article Generator').strip(),
+        page_icon=os.getenv('PAGE_ICON', '📘').strip(),
+        app_port=int(os.getenv('APP_PORT', '8501').strip()),
         default_output_mode=os.getenv('DEFAULT_OUTPUT_MODE', 'HTML Preview').strip(),
-        output_modes=[m.strip() for m in os.getenv('OUTPUT_MODES', 'Text,Text + Images,HTML Preview,HTML Code').split(',') if m.strip()],
+        output_modes=[m.strip() for m in os.getenv('OUTPUT_MODES', 'Text,Image Plan,HTML Preview,HTML Code').split(',') if m.strip()],
         enable_download=getenv_bool('ENABLE_DOWNLOAD', 'true'),
         enable_copy=getenv_bool('ENABLE_COPY', 'true'),
         enable_print=getenv_bool('ENABLE_PRINT', 'true'),
@@ -66,6 +83,7 @@ def load_settings() -> Settings:
         use_placeholders_when_no_images=getenv_bool('USE_PLACEHOLDERS_WHEN_NO_IMAGES', 'true'),
         image_placeholder_text=os.getenv('IMAGE_PLACEHOLDER_TEXT', 'Add screenshot here').strip(),
         default_subtitle=os.getenv('DEFAULT_SUBTITLE', 'Knowledge Base Article').strip(),
+        default_greeting=os.getenv('DEFAULT_GREETING', 'Dear Team,').strip(),
         default_intro_text=os.getenv('DEFAULT_INTRO_TEXT', 'Please review the knowledge base article below.').strip(),
         default_footer_text=os.getenv('DEFAULT_FOOTER_TEXT', 'This article is prepared for internal staff distribution and customer service support.').strip(),
         template_outer_bg=os.getenv('TEMPLATE_OUTER_BG', '#F2F4F7').strip(),

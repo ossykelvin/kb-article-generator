@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import List, Dict, Any
 
-from agents.gemini_client import GeminiClient
+from agents.ai_client import AIClient
 from utils.config import Settings
 
 
 def plan_image_placements(article: dict, uploaded_images: List[Dict[str, Any]], settings: Settings) -> dict:
-    client = GeminiClient(settings)
+    client = AIClient(settings)
     skill_prompt = client.prompt_from_skill(settings.skills_dir / 'image_skill.md')
     image_catalog = [
         {'name': item['name'], 'caption_hint': item.get('caption_hint', ''), 'mime_type': item.get('mime_type', '')}
