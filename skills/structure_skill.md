@@ -1,4 +1,3 @@
-
 # Skill: Knowledge Base Structuring
 
 ## Objective

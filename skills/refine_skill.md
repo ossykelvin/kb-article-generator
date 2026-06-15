@@ -1,4 +1,3 @@
-
 # Skill: Article Refinement
 
 ## Objective

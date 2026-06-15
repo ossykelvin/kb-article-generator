@@ -40,10 +40,11 @@ def render_preview(html_content: str):
 
 
 st.title(settings.app_title)
-st.caption('Paste an article, generate a polished KB article, place images strategically, and produce an HTML email using your template.')
+st.caption('Gemini edition: paste an article, generate a polished KB article, place images strategically, and produce an HTML email using your template.')
 
 with st.sidebar:
     st.subheader('Output & Email Options')
+    st.caption(f"Model: {settings.gemini_model}")
     default_idx = settings.output_modes.index(settings.default_output_mode) if settings.default_output_mode in settings.output_modes else 0
     output_mode = st.selectbox('Output mode', settings.output_modes, index=default_idx)
     subtitle = st.text_input('Email subtitle', value=settings.default_subtitle)
@@ -64,7 +65,7 @@ if submit:
     if not cleaned_article:
         st.error('Please paste an article before generating output.')
     else:
-        with st.spinner('Running the multi-agent flow...'):
+        with st.spinner('Running the Gemini multi-agent flow...'):
             uploaded_images = []
             for file in uploaded_files or []:
                 file_bytes = file.read()

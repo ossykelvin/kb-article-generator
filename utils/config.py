@@ -15,15 +15,10 @@ def getenv_bool(name: str, default: str = 'false') -> bool:
 @dataclass
 class Settings:
     llm_provider: str
-    openai_api_key: str
-    openai_model: str
-    openai_base_url: str
-    openai_temperature: float
-    openai_max_tokens: int
-    azure_openai_api_key: str
-    azure_openai_endpoint: str
-    azure_openai_api_version: str
-    azure_openai_deployment: str
+    gemini_api_key: str
+    gemini_model: str
+    gemini_temperature: float
+    gemini_max_tokens: int
     app_title: str
     page_icon: str
     default_output_mode: str
@@ -53,16 +48,11 @@ class Settings:
 
 def load_settings() -> Settings:
     return Settings(
-        llm_provider=os.getenv('LLM_PROVIDER', 'openai').strip(),
-        openai_api_key=os.getenv('OPENAI_API_KEY', '').strip(),
-        openai_model=os.getenv('OPENAI_MODEL', 'gpt-4.1-mini').strip(),
-        openai_base_url=os.getenv('OPENAI_BASE_URL', '').strip(),
-        openai_temperature=float(os.getenv('OPENAI_TEMPERATURE', '0.2').strip()),
-        openai_max_tokens=int(os.getenv('OPENAI_MAX_TOKENS', '2400').strip()),
-        azure_openai_api_key=os.getenv('AZURE_OPENAI_API_KEY', '').strip(),
-        azure_openai_endpoint=os.getenv('AZURE_OPENAI_ENDPOINT', '').strip(),
-        azure_openai_api_version=os.getenv('AZURE_OPENAI_API_VERSION', '2024-10-21').strip(),
-        azure_openai_deployment=os.getenv('AZURE_OPENAI_DEPLOYMENT', '').strip(),
+        llm_provider=os.getenv('LLM_PROVIDER', 'gemini').strip(),
+        gemini_api_key=(os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_API_KEY') or '').strip(),
+        gemini_model=os.getenv('GEMINI_MODEL', 'gemini-2.5-pro').strip(),
+        gemini_temperature=float(os.getenv('GEMINI_TEMPERATURE', '0.2').strip()),
+        gemini_max_tokens=int(os.getenv('GEMINI_MAX_TOKENS', '2400').strip()),
         app_title=os.getenv('APP_TITLE', 'Knowledge Base Article Generator').strip(),
         page_icon=os.getenv('PAGE_ICON', '📰').strip(),
         default_output_mode=os.getenv('DEFAULT_OUTPUT_MODE', 'HTML Preview').strip(),

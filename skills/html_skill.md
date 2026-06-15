@@ -1,4 +1,3 @@
-
 # Skill: HTML Email Rendering
 
 ## Objective

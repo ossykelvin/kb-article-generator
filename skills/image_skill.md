@@ -1,4 +1,3 @@
-
 # Skill: Image Placement
 
 ## Objective
