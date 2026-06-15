@@ -27,13 +27,17 @@ def button_html(label: str, js: str, bg: str = '#2563EB'):
 
 def copy_button(content: str, key: str, label: str = 'Copy'):
     safe = json.dumps(content)
-    components.html(button_html(label, f"navigator.clipboard.writeText({safe})"), height=46, key=key)
+    # Streamlit hosted runtimes may not support the `key` argument on components.html.
+    # The surrounding caller still passes a key for future compatibility, but this
+    # component renders safely without it.
+    components.html(button_html(label, f"navigator.clipboard.writeText({safe})"), height=46)
 
 
 def print_button(html_content: str, key: str, label: str = 'Print'):
     safe = json.dumps(html_content)
     js = f"(function(){{const html={safe};const w=window.open('', '_blank');w.document.open();w.document.write(html);w.document.close();w.focus();setTimeout(function(){{w.print();}},400);}})()"
-    components.html(button_html(label, js, '#0D1B3D'), height=46, key=key)
+    # Avoid passing `key` to components.html for compatibility with Streamlit Cloud/runtime builds.
+    components.html(button_html(label, js, '#0D1B3D'), height=46)
 
 
 def render_preview(html_content: str):
