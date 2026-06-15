@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from agents.gemini_client import GeminiClient
+from .gemini_client import GeminiClient
 from utils.config import Settings
 
 
