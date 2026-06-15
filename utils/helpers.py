@@ -9,7 +9,7 @@ from typing import Any
 
 
 def read_text_file(path: Path) -> str:
-    return path.read_text(encoding="utf-8")
+    return path.read_text(encoding='utf-8')
 
 
 def to_json_string(value: Any) -> str:
@@ -17,36 +17,35 @@ def to_json_string(value: Any) -> str:
 
 
 def file_to_data_uri(file_bytes: bytes, file_name: str, mime_type: str | None = None) -> str:
-    guessed = mime_type or mimetypes.guess_type(file_name)[0] or "application/octet-stream"
-    encoded = base64.b64encode(file_bytes).decode("utf-8")
-    return f"data:{guessed};base64,{encoded}"
+    guessed = mime_type or mimetypes.guess_type(file_name)[0] or 'application/octet-stream'
+    encoded = base64.b64encode(file_bytes).decode('utf-8')
+    return f'data:{guessed};base64,{encoded}'
 
 
 def html_escape(text: str) -> str:
-    return html.escape(text or "")
+    return html.escape(text or '')
 
 
 def normalize_newlines(text: str) -> str:
-    return (text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+    return (text or '').replace('\r\n', '\n').replace('\r', '\n').strip()
 
 
 def extract_json_object(text: str) -> dict:
-    text = (text or "").strip()
+    text = (text or '').strip()
     if not text:
-        raise ValueError("Empty JSON response")
-    if text.startswith("```"):
+        raise ValueError('Empty JSON response')
+    if text.startswith('```'):
         lines = text.splitlines()
-        if lines and lines[0].startswith("```"):
+        if lines and lines[0].startswith('```'):
             lines = lines[1:]
-        if lines and lines[-1].startswith("```"):
+        if lines and lines[-1].startswith('```'):
             lines = lines[:-1]
-        text = "\n".join(lines).strip()
+        text = '\n'.join(lines).strip()
     try:
         return json.loads(text)
     except json.JSONDecodeError:
         pass
-    start = text.find("{")
-    end = text.rfind("}")
+    start, end = text.find('{'), text.rfind('}')
     if start == -1 or end == -1 or end <= start:
-        raise ValueError("No JSON object found in model response")
+        raise ValueError('No JSON object found in model response')
     return json.loads(text[start:end+1])

@@ -10,12 +10,6 @@ Convert the refined article into a structured knowledge base article.
 4. Notes
 5. Summary
 
-## Formatting Rules
-- The step sequence must be logical and easy to follow.
-- Each step heading should start with an action verb where practical.
-- Use concise detail bullets under each step where needed.
-- Notes should contain cautions, exceptions, prerequisites, or helpful reminders.
-
 ## JSON Output Schema
 Return valid JSON only with this structure:
 ```json
