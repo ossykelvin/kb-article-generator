@@ -28,32 +28,40 @@ class GeminiClient:
     # ----------------------------------------
     # TEXT GENERATION
     # ----------------------------------------
-    def generate_text(self, system_prompt: str, user_prompt: str) -> str:
-        try:
-            response = self.client.models.generate_content(
-                model=self.model,
-                contents=[
-                    {
-                        "role": "system",
-                        "parts": [{"text": system_prompt}],
-                    },
-                    {
-                        "role": "user",
-                        "parts": [{"text": user_prompt}],
-                    },
-                ],
-                config=types.GenerateContentConfig(
-                    temperature=self.settings.gemini_temperature,
-                    max_output_tokens=self.settings.gemini_max_tokens,
-                ),
-            )
-            return (response.text or "").strip()
+def generate_text(self, system_prompt: str, user_prompt: str) -> str:
+    try:
+        response = self.client.models.generate_content(
+            model=self.model,
+            contents=[
+                {
+                    "role": "user",
+                    "parts": [
+                        {"text": f"{system_prompt}\n\n{user_prompt}"}
+                    ],
+                }
+            ],
+            config=types.GenerateContentConfig(
+                temperature=self.settings.gemini_temperature,
+                max_output_tokens=self.settings.gemini_max_tokens,
+            ),
+        )
+        return (response.text or "").strip()
 
-        except Exception as e:
-            print("Gemini API Error:", e)
-            if hasattr(e, "response_json"):
-                print("API Response:", e.response_json)
-            raise
+    except Exception as e:
+        print("\n🔥 GEMINI ERROR 🔥")
+        print("Error:", str(e))
+
+        # ✅ THIS LINE IS CRITICAL
+        if hasattr(e, "response") and e.response is not None:
+            try:
+                print("Response JSON:", e.response.json())
+            except Exception:
+                pass
+
+        if hasattr(e, "response_json"):
+            print("Response JSON (alt):", e.response_json)
+
+        raise
 
     # ----------------------------------------
     # JSON GENERATION
